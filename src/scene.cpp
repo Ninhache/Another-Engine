@@ -2,6 +2,10 @@
 #include "headers/texture.hpp"
 #include "headers/logger.hpp"
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 #include <iostream>
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
@@ -149,7 +153,6 @@ void Scene::renderLoop() {
 	Texture texture2 = Texture::getTextureFromFile(std::string("textures/awesomeface.png"), aiTextureType_UNKNOWN, true);
 
 	defaultShader->use();
-    
     glUniform1i(glGetUniformLocation(defaultShader->getId(), "texture1"), 0);
     defaultShader->setInt("texture2", 1);
 
@@ -167,10 +170,16 @@ void Scene::renderLoop() {
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, texture2.getID());
 
-        defaultShader->use();
+		glm::mat4 transform = glm::mat4(1.0f);
+		unsigned int transformLoc = glGetUniformLocation(defaultShader->getId(), "transform");
 
-        glBindVertexArray(VAO);
+        // fourth container
+		transform = glm::mat4(1.0f); // reset it to identity matrix
+        transform = glm::translate(transform, glm::vec3(0.5f, 0.5f, 0.0f));
+        transform = glm::rotate(transform, (float)glfwGetTime(), glm::vec3(0.0f, 1.0f, 0.0f));
+        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, &transform[0][0]); // this time take the matrix value array's first element as its memory pointer value
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
 
 		glfwSwapBuffers(window);
         glfwPollEvents();
