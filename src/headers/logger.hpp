@@ -20,14 +20,9 @@ public:
         if (!m_logfile.is_open()) {
             std::cerr << "Error opening log file" << std::endl;
         }
-
-        auto now = std::chrono::system_clock::now();
-        auto now_c = std::chrono::system_clock::to_time_t(now);
-        std::tm *tm = std::localtime(&now_c);
-
-        char buffer[9];
-        std::strftime(buffer, sizeof(buffer), "%H:%M:%S", tm);
-        m_logfile << "[CORE] App started at : " << buffer << std::endl;
+        
+        // todo: move level before the time (?)
+        log("[CORE] App started");
     }
 
     /**
