@@ -1,4 +1,7 @@
 build/*
+# logs aren't in the build folder atm..
+log.txt
+.vscode/*
 
 # Prerequisites
 *.d
