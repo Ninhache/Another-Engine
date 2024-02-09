@@ -5,6 +5,7 @@
 
 #include "map"
 
+#include "camera.hpp"
 #include "shader.hpp"
 
 class Scene {
@@ -85,3 +86,5 @@ private:
     }
 
 };
+
+extern Camera camera;
