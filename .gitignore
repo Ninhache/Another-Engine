@@ -2,6 +2,12 @@ build/*
 # logs aren't in the build folder atm..
 log.txt
 .vscode/*
+textures/*
+x64/*
+*.sln
+*.vcxproj
+*.vcxproj.*
+.vs/*
 
 # Prerequisites
 *.d
@@ -29,7 +35,6 @@ log.txt
 *.lai
 *.la
 *.a
-*.lib
 
 # Executables
 *.exe
