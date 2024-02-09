@@ -1,4 +1,5 @@
 #include "headers/shader.hpp"
+#include "headers/logger.hpp"
 
 Shader::Shader(const char* vertexPath, const char* fragmentPath) {
 
@@ -26,7 +27,7 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath) {
         vertexCode = vShaderStream.str();
         fragmentCode = fShaderStream.str();
     } catch (std::ifstream::failure& e) {
-        std::cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ: " << e.what() << std::endl;
+        logger.error("SHADER::FILE_NOT_SUCCESFULLY_READ " + std::string(e.what()));
     }
 
     const char* vShaderCode = vertexCode.c_str();
@@ -113,7 +114,8 @@ void Shader::reload() {
         vertexCode = vShaderStream.str();
         fragmentCode = fShaderStream.str();
     } catch (std::ifstream::failure& e) {
-        std::cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ: " << e.what() << std::endl;
+        // std::cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ: " << e.what() << std::endl;
+        logger.error("SHADER::FILE_NOT_SUCCESFULLY_READ: " + std::string(e.what()));
     }
 
     const char* vShaderCode = vertexCode.c_str();
@@ -154,14 +156,15 @@ int Shader::checkCompileErrors(unsigned int shader, std::string type) {
 		glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
 		if (!success) {
 			glGetShaderInfoLog(shader, 1024, NULL, infoLog);
-			std::cout << "ERROR::SHADER_COMPILATION_ERROR of type: " << type << "\n" << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
+			// std::cout << "ERROR::SHADER_COMPILATION_ERROR of type: " << type << "\n" << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
+            logger.error("SHADER_COMPILATION_ERROR of type ["+ type +"]" + "\n" + infoLog);
 		}
-	}
-	else {
+	} else {
 		glGetProgramiv(shader, GL_LINK_STATUS, &success);
 		if (!success) {
 			glGetProgramInfoLog(shader, 1024, NULL, infoLog);
-			std::cout << "ERROR::PROGRAM_LINKING_ERROR of type: " << type << "\n" << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
+			// std::cout << "ERROR::PROGRAM_LINKING_ERROR of type: " << type << "\n" << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
+            logger.error("PROGRAM_LINKING_ERROR of type ["+ type +"]" + "\n" + infoLog);
 		}
 	}
     return success;
