@@ -18,6 +18,7 @@ add_executable(3d-engine
         ${CURRENT_DIR}/src/main.cpp
         ${CURRENT_DIR}/src/shader.cpp
         ${CURRENT_DIR}/src/scene.cpp
+        ${CURRENT_DIR}/src/texture.cpp
 )
 
 
