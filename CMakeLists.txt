@@ -16,6 +16,8 @@ add_executable(3d-engine
         ${CURRENT_DIR}/include/glad/glad.c
         ${CURRENT_DIR}/include/stb/stb.c
         ${CURRENT_DIR}/src/main.cpp
+        ${CURRENT_DIR}/src/shader.cpp
+        ${CURRENT_DIR}/src/scene.cpp
 )
 
 
