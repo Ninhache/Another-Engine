@@ -1,4 +1,6 @@
 #include "headers/scene.hpp"
+#include "headers/texture.hpp"
+#include "headers/logger.hpp"
 
 #include <iostream>
 
@@ -26,10 +28,36 @@ Scene::~Scene() {
 	glfwTerminate();
 }
 
+std::string getPlatform() {
+	#if defined(_WIN32) || defined(_WIN64)
+		return "Windows";
+	#elif defined(__linux__)
+		return "Windows";
+	#else
+		return "Unknown operating system";
+	#endif
+}
+
+
+std::string getGLString(GLenum name) {
+    const GLubyte* str = glGetString(name);
+    if (str) {
+        return std::string(reinterpret_cast<const char*>(str));
+    } else {
+        return std::string();
+    }
+}
+
 GLFWwindow* Scene::initWindow() {
 	Scene::initGLFW();
 	GLFWwindow* window = Scene::createWindow();
 	Scene::initGLAD();
+
+	std::string logMessage = "Another-Engine is running on " + getPlatform() + "\n"
+							 + "Main scene has been initialized using " + getGLString(GL_VERSION) + "\n"
+							 + "CPU: " + getGLString(GL_VENDOR) + "\n"
+							 + "GPU: " + getGLString(GL_RENDERER) + "\n";
+	logger.log(logMessage);
 
 	return window;
 }
@@ -37,15 +65,14 @@ GLFWwindow* Scene::initWindow() {
 void Scene::initGLFW() {
 	glfwInit();
 
-	// Define OpenGl version to use
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 }
 
 GLFWwindow* Scene::createWindow() {
 
-	GLFWwindow* window = glfwCreateWindow(Scene::width, Scene::height, "3D engine", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(Scene::width, Scene::height, "Another-Engine", NULL, NULL);
 
 	if (window == NULL) {
 		glfwTerminate();
@@ -78,59 +105,76 @@ void Scene::renderLoop() {
 	glfwSetCursorPosCallback(this->window, mouse_callback);
     glfwSetInputMode(this->window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetKeyCallback(this->window, key_callback);
-    glEnable(GL_CULL_FACE);
-    glEnable(GL_DEPTH_TEST);
 
 	Shader* defaultShader = this->shaders.find("default")->second;
 
-	// Temp. data to test "new" shader implementation
+	// Temp. data to test texture feature
 	float vertices[] = {
-		-0.5f, -0.5f, 0.0f,
-		0.5f, -0.5f, 0.0f,
-		0.0f,  0.5f, 0.0f
-	};  
-
-	unsigned int VBO, VAO;
-
+        // positions          // colors           // texture coords
+         0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f, // top right
+         0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f, // bottom right
+        -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f, // bottom left
+        -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f  // top left 
+    };
+    unsigned int indices[] = {
+        0, 1, 3, // first triangle
+        1, 2, 3  // second triangle
+    };
+    unsigned int VBO, VAO, EBO;
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
+    glGenBuffers(1, &EBO);
 
     glBindVertexArray(VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
 
-	// To use reload features from the shaders, we've to care to the usage of the GLEnum :
-    // -> GL_STATIC_DRAW: the data is set only once and used many times
-    // -> GL_DYNAMIC_DRAW: the data is changed a lot and used many times
-	// -> GL_STREAM_DRAW: the data is set only once and used by the GPU at most a few times
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    // position attribute
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0); 
-    glBindVertexArray(0); 
-
 	
+    // color attribute
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
+    // texture coord attribute
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+    glEnableVertexAttribArray(2);
+
+	Texture texture1 = Texture::getTextureFromFile(std::string("textures/container.jpg"), aiTextureType_UNKNOWN, false);
+	Texture texture2 = Texture::getTextureFromFile(std::string("textures/awesomeface.png"), aiTextureType_UNKNOWN, true);
+
+	defaultShader->use();
+    
+    glUniform1i(glGetUniformLocation(defaultShader->getId(), "texture1"), 0);
+    defaultShader->setInt("texture2", 1);
 
 	while (!glfwWindowShouldClose(window)) {
 		current = glfwGetTime();
 		deltaTime = current - lastFrame;
 		lastFrame = current;
 
-		glClearColor(0.0f,0.0f,0.0f,0.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+		glClearColor(0.f,0.f,0.f,1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
 
-		defaultShader->use();
+        // raw use to draw textures
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, texture1.getID());
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, texture2.getID());
 
-		// Raw use of shaders for the moment
-		glBindVertexArray(VAO);
-		glDrawArrays(GL_TRIANGLES, 0, 3);
-		
+        defaultShader->use();
+
+        glBindVertexArray(VAO);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
 		glfwSwapBuffers(window);
         glfwPollEvents();
 	}
-	
 
 }
 
@@ -141,8 +185,6 @@ void Scene::setupScene() {
 
 	this->addShader("default", new Shader{ "shaders/default.vs", "shaders/default.fs" });
 }
-
-
 
 void Scene::addShader(std::string name, Shader* shader) {
 	this->shaders.insert({ name, shader });
