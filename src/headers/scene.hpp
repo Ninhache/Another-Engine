@@ -7,6 +7,7 @@
 
 #include "camera.hpp"
 #include "shader.hpp"
+#include "material.hpp"
 
 class Scene {
 
@@ -39,12 +40,16 @@ public:
     void addShader(std::string name, Shader* shader);
     std::map<std::string, Shader*> getShaders();
 
+    void addMaterial(std::string name, Material* material);
+    std::map<std::string, Material*> getMaterials();  
+
     static uint16_t width;
     static uint16_t height;
 
 private:
     GLFWwindow* window;    
     std::map<std::string, Shader*> shaders;
+    std::map<std::string, Material*> materials;
 
     /**
      * @brief Init all the libraries and generate a windows
