@@ -24,7 +24,11 @@ void Camera::scrollUpdate(double yoffset) {
 
 void Camera::processInput(GLFWwindow* window, float deltaTime) {
 
-	const float cameraVelocity = cameraSpeed * deltaTime;
+	float cameraVelocity = cameraSpeed * deltaTime;
+
+	if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) {
+		cameraVelocity *= 2;
+	}
 
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
 		cameraPos += cameraVelocity * cameraFront;
@@ -94,4 +98,8 @@ void Camera::updateVectors() {
 	cameraSide = glm::normalize(glm::cross(cameraFront, glm::vec3(0.0f,1.0f,0.0f)));
 	//Same logic as cameraSide
 	cameraUp = glm::normalize(glm::cross(cameraSide,cameraFront));
+}
+
+float Camera::getZoom() {
+	return this->zoom;
 }
