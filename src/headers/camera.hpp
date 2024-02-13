@@ -50,6 +50,8 @@ public:
 	 */
 	glm::vec3 getPos();
 
+	float getZoom();
+
 	/**
 	 * @return the LookAt (or view) matrix
 	 */
@@ -66,7 +68,7 @@ public:
 	float &getCameraSpeed();
 
 protected:
-	float yaw = -90.0f, pitch = 0.0f, fov = 45.0f;
+	float yaw = -90.0f, pitch = 0.0f, fov = 45.0, zoom = 45.0f;
 	float mouseSensitivity = 0.1f, cameraSpeed = 6.0f, scrollMult = 0.2;
 
 private:
